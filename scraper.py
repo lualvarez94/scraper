@@ -5,7 +5,10 @@ import pandas as pd
 
 def scrape_craigslist(city: str, max_price: int, limit: int = 30):
     base_url = f"https://{city}.craigslist.org/search/cta?max_price={max_price}&hasPic=1"
-    response = requests.get(base_url)
+    headers = {
+        "User-Agent": "Mozilla/5.0"
+    }
+    response = requests.get(base_url, headers=headers)
     soup = BeautifulSoup(response.text, 'html.parser')
     
     listings = []
