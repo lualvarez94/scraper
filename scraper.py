@@ -8,7 +8,7 @@ def scrape_cars_com(zip_code: str = "94103", max_price: int = 10000, limit: int 
     headers = {"User-Agent": "Mozilla/5.0"}
 
     try:
-        response = requests.get(url, headers=headers, timeout=10)
+        response = requests.get(url, headers=headers, timeout=60)
         response.raise_for_status()
     except requests.RequestException as e:
         raise Exception(f"Request failed: {e}")
