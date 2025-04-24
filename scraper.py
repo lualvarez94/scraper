@@ -4,7 +4,7 @@ import pandas as pd
 import time
 
 def scrape_craigslist(city: str, max_price: int, limit: int = 30):
-    base_url = f"https://{city}.craigslist.org/search/cta?max_price={max_price}&hasPic=1"
+    base_url = f"https://{city}.craigslist.org/search/cta?max_price={max_price}"
     
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 \
