@@ -1,5 +1,8 @@
 # app.py
-import streamlit as st
+import importlib
+import scraper
+importlib.reload(scraper)
+
 from scraper import scrape_craigslist
 
 st.set_page_config(page_title="Used Car Finder", layout="centered")
