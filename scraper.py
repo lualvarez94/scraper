@@ -9,10 +9,18 @@ def scrape_cargurus(zip_code="95035", max_price=10000, limit=10):
         f"&zip={zip_code}&isDeliveryEnabled=true"
     )
     
-    headers = {"User-Agent": "Mozilla/5.0"}
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+    }
+
+    # Optional: Adding cookies (you might need to extract cookies from your browser)
+    cookies = {
+        "csrftoken": "your_cookie_here",
+        # Add more cookies if necessary (inspect using browser developer tools)
+    }
 
     try:
-        response = requests.get(url, headers=headers, timeout=20)
+        response = requests.get(url, headers=headers, cookies=cookies, timeout=20)
         response.raise_for_status()
     except requests.RequestException as e:
         raise Exception(f"Request failed: {e}")
@@ -40,6 +48,7 @@ def scrape_cargurus(zip_code="95035", max_price=10000, limit=10):
         })
 
     return pd.DataFrame(listings)
+
 
 
 
