@@ -1,13 +1,14 @@
-# scraper.py
 import requests
 from bs4 import BeautifulSoup
 import pandas as pd
 
-def scrape_edmunds(zip_code="94103", max_price=10000, limit=10):
+def scrape_cargurus(zip_code="95035", max_price=10000, limit=10):
     url = (
-        f"https://www.edmunds.com/used-cars-for-sale/"
-        f"?price={max_price}&radius=50&zip={zip_code}"
+        f"https://www.cargurus.com/Cars/inventorylisting/viewDetailsFilterViewInventoryListing.action"
+        f"?sourceContext=untrackedExternal_false_0&distance=50&inventorySearchWidgetType=AUTO"
+        f"&zip={zip_code}&isDeliveryEnabled=true"
     )
+    
     headers = {"User-Agent": "Mozilla/5.0"}
 
     try:
@@ -17,17 +18,20 @@ def scrape_edmunds(zip_code="94103", max_price=10000, limit=10):
         raise Exception(f"Request failed: {e}")
 
     soup = BeautifulSoup(response.text, "html.parser")
-    cars = soup.select("div.inventory-listing")[:limit]
+
+    car_cards = soup.find_all("div", class_="vehicle-card")[:limit]
+    if not car_cards:
+        raise Exception("No listings found on CarGurus. Their layout may have changed.")
 
     listings = []
-    for car in cars:
-        title_tag = car.select_one("h2")
+    for car in car_cards:
+        title_tag = car.select_one("h4")
         price_tag = car.select_one("span[class*='price']")
-        link_tag = car.select_one("a[href*='/used-cars-for-sale/vehicle/']")
+        link_tag = car.select_one("a[href*='/Cars/inventorylisting/viewDetails']")
 
-        title = title_tag.text.strip() if title_tag else "N/A"
-        price = price_tag.text.strip() if price_tag else "N/A"
-        link = f"https://www.edmunds.com{link_tag['href']}" if link_tag else "N/A"
+        title = title_tag.get_text(strip=True) if title_tag else "N/A"
+        price = price_tag.get_text(strip=True) if price_tag else "N/A"
+        link = f"https://www.cargurus.com{link_tag['href']}" if link_tag else "N/A"
 
         listings.append({
             "Title": title,
@@ -36,5 +40,6 @@ def scrape_edmunds(zip_code="94103", max_price=10000, limit=10):
         })
 
     return pd.DataFrame(listings)
+
 
 
