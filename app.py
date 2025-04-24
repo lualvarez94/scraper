@@ -9,7 +9,7 @@ from scraper import scrape_cars_com
 
 st.set_page_config(page_title="Used Car Finder", layout="centered")
 
-st.title("🚘 Used Car Finder (Cars.com Edition)")
+st.title("🚘 Used Car Finder V2 (Cars.com Edition)")
 st.write("Search used car listings near your zip code with price filters.")
 
 with st.form("search"):
