@@ -1,50 +1,29 @@
+# scraper.py
 import requests
 from bs4 import BeautifulSoup
 import pandas as pd
-import time
 
-def scrape_craigslist(city: str, max_price: int, limit: int = 30):
-    base_url = f"https://{city}.craigslist.org/search/cta?max_price={max_price}"
+def scrape_cars_com(zip_code: str = "94103", max_price: int = 10000, limit: int = 20):
+    url = f"https://www.cars.com/shopping/results/?list_price_max={max_price}&maximum_distance=50&zip={zip_code}&stock_type=used"
+    headers = {"User-Agent": "Mozilla/5.0"}
     
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 \
-(KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-        "Accept-Language": "en-US,en;q=0.9",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
-    }
-
-    time.sleep(1)  # respectful delay
-
-    response = requests.get(base_url, headers=headers)
-
-    print("Status code:", response.status_code)
-    print("First 500 characters of HTML:")
-    print(response.text[:500])  # Check if Craigslist is showing a CAPTCHA or block
-
-    soup = BeautifulSoup(response.text, 'html.parser')
-
+    response = requests.get(url, headers=headers)
+    if response.status_code != 200:
+        raise Exception(f"Failed to fetch Cars.com data: {response.status_code}")
+    
+    soup = BeautifulSoup(response.text, "html.parser")
     listings = []
-    rows = soup.find_all("li", class_="result-row")
-    
-    print(f"Found {len(rows)} results")  # Should be >0
 
-    for row in rows[:limit]:
-        title_elem = row.find("a", class_="result-title")
-        price_elem = row.find("span", class_="result-price")
-        hood_elem = row.find("span", class_="result-hood")
-        link = title_elem["href"] if title_elem else ""
-
-        title = title_elem.text.strip() if title_elem else "N/A"
-        price = price_elem.text.strip() if price_elem else "N/A"
-        location = hood_elem.text.strip(" ()") if hood_elem else "N/A"
+    cars = soup.find_all("div", class_="vehicle-card")[:limit]
+    for car in cars:
+        title = car.find("h2")
+        price = car.find("span", class_="primary-price")
+        link_tag = car.find("a", class_="vehicle-card-link")
 
         listings.append({
-            "Title": title,
-            "Price": price,
-            "Location": location,
-            "Link": link
+            "Title": title.text.strip() if title else "N/A",
+            "Price": price.text.strip() if price else "N/A",
+            "Link": f"https://www.cars.com{link_tag['href']}" if link_tag else "N/A"
         })
 
     return pd.DataFrame(listings)
-
-
