@@ -3,30 +3,38 @@ import requests
 from bs4 import BeautifulSoup
 import pandas as pd
 
-def scrape_cars_com(zip_code: str = "94103", max_price: int = 10000, limit: int = 10):
-    url = f"https://www.cars.com/shopping/results/?list_price_max={max_price}&maximum_distance=50&zip={zip_code}&stock_type=used"
+def scrape_edmunds(zip_code="94103", max_price=10000, limit=10):
+    url = (
+        f"https://www.edmunds.com/used-cars-for-sale/"
+        f"?price={max_price}&radius=50&zip={zip_code}"
+    )
     headers = {"User-Agent": "Mozilla/5.0"}
 
     try:
-        response = requests.get(url, headers=headers, timeout=60)
+        response = requests.get(url, headers=headers, timeout=20)
         response.raise_for_status()
     except requests.RequestException as e:
         raise Exception(f"Request failed: {e}")
 
     soup = BeautifulSoup(response.text, "html.parser")
-    listings = []
+    cars = soup.select("div.inventory-listing")[:limit]
 
-    cars = soup.find_all("div", class_="vehicle-card")[:limit]
+    listings = []
     for car in cars:
-        title = car.find("h2")
-        price = car.find("span", class_="primary-price")
-        link_tag = car.find("a", class_="vehicle-card-link")
+        title_tag = car.select_one("h2")
+        price_tag = car.select_one("span[class*='price']")
+        link_tag = car.select_one("a[href*='/used-cars-for-sale/vehicle/']")
+
+        title = title_tag.text.strip() if title_tag else "N/A"
+        price = price_tag.text.strip() if price_tag else "N/A"
+        link = f"https://www.edmunds.com{link_tag['href']}" if link_tag else "N/A"
 
         listings.append({
-            "Title": title.text.strip() if title else "N/A",
-            "Price": price.text.strip() if price else "N/A",
-            "Link": f"https://www.cars.com{link_tag['href']}" if link_tag else "N/A"
+            "Title": title,
+            "Price": price,
+            "Link": link
         })
 
     return pd.DataFrame(listings)
+
 
